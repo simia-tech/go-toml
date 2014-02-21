@@ -419,7 +419,7 @@ func lexKeyTableArray(l *lexer) stateFn {
 			break
 		}
 	}
-	return l.errorf("unclosed table array")
+	return l.errorf("unclosed table array key")
 }
 
 func lexKeyGroup(l *lexer) stateFn {

@@ -38,6 +38,22 @@ func TestValidKeyTableArray(t *testing.T) {
 	})
 }
 
+func TestIllTerminatedKeyTableArray(t *testing.T) {
+	testFlow(t, "[[hello.world]", []token{
+		token{tokenLeftBracket, "["},
+		token{tokenLeftBracket, "["},
+		token{tokenError, "table array key not terminated by ]]"},
+	})
+}
+
+func TestUnclosedKeyTableArray(t *testing.T) {
+	testFlow(t, "[[hello.world", []token{
+		token{tokenLeftBracket, "["},
+		token{tokenLeftBracket, "["},
+		token{tokenError, "unclosed table array key"},
+	})
+}
+
 func TestValidKeyGroup(t *testing.T) {
 	testFlow(t, "[hello world]", []token{
 		token{tokenLeftBracket, "["},
