@@ -1,4 +1,5 @@
-// TOML lexer.// Written using the principles developped by Rob Pike in
+// TOML lexer.
+// Written using the principles developped by Rob Pike in
 // http://www.youtube.com/watch?v=HxaD_trXwRE
 
 package toml
@@ -36,6 +37,7 @@ const (
 	tokenRightBracket
 	tokenDate
 	tokenKeyGroup
+	tokenKeyTableArray
 	tokenComma
 	tokenEOL
 )
@@ -162,7 +164,14 @@ func lexVoid(l *lexer) stateFn {
 		next := l.peek()
 		switch next {
 		case '[':
-			return lexKeyGroup
+			l.ignore()
+			l.pos += 1
+			l.emit(tokenLeftBracket)
+			if l.peek() == '[' {
+				return lexKeyTableArray
+			} else {
+				return lexKeyGroup
+			}
 		case '#':
 			return lexComment
 		case '=':
@@ -384,14 +393,36 @@ func lexString(l *lexer) stateFn {
 	return l.errorf("unclosed string")
 }
 
-func lexKeyGroup(l *lexer) stateFn {
+func lexKeyTableArray(l *lexer) stateFn {
 	l.ignore()
 	l.pos += 1
 	l.emit(tokenLeftBracket)
-	return lexInsideKeyGroup
+
+	for {
+		if l.peek() == ']' {
+			if l.follow("]]") {
+				if l.pos > l.start {
+					l.emit(tokenKeyTableArray)
+				}
+				l.ignore()
+				l.pos += 1
+				l.emit(tokenRightBracket)
+				l.pos += 1
+				l.emit(tokenRightBracket)
+				return lexVoid
+			} else {
+				return l.errorf("table array key not terminated by ]]")
+			}
+		}
+
+		if l.next() == eof {
+			break
+		}
+	}
+	return l.errorf("unclosed table array")
 }
 
-func lexInsideKeyGroup(l *lexer) stateFn {
+func lexKeyGroup(l *lexer) stateFn {
 	for {
 		if l.peek() == ']' {
 			if l.pos > l.start {

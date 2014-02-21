@@ -27,6 +27,17 @@ func testFlow(t *testing.T, input string, expectedFlow []token) {
 	}
 }
 
+func TestValidKeyTableArray(t *testing.T) {
+	testFlow(t, "[[hello.world]]", []token{
+		token{tokenLeftBracket, "["},
+		token{tokenLeftBracket, "["},
+		token{tokenKeyTableArray, "hello.world"},
+		token{tokenRightBracket, "]"},
+		token{tokenRightBracket, "]"},
+		token{tokenEOF, ""},
+	})
+}
+
 func TestValidKeyGroup(t *testing.T) {
 	testFlow(t, "[hello world]", []token{
 		token{tokenLeftBracket, "["},
